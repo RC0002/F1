@@ -1,0 +1,8 @@
+streamlit
+fastf1
+requests-cache
+pandas
+numpy
+matplotlib
+seaborn
+plotly
