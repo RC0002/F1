@@ -1,0 +1,403 @@
+import fastf1 as ff1
+from fastf1 import plotting
+from fastf1 import utils
+
+from matplotlib import pyplot as plt
+from matplotlib.pyplot import figure
+import streamlit as st
+import Functions
+import altair as alt
+
+import numpy as np
+import pandas as pd
+
+import Functions
+
+
+# Enable the cache by providing the name of the cache folder
+#ff1.Cache.enable_cache('cache')
+
+def execute(nameRace,yearRace,teams,typeOfSession):
+
+    #Style del testo------------------------
+    large = 20;
+    med = 9;
+    small = 6
+    params = {'axes.titlesize': large,
+              'legend.fontsize': med,
+              'figure.figsize': (16, 10),
+              'axes.labelsize': med,
+              'axes.titlesize': med,
+              'xtick.labelsize': med,
+              'ytick.labelsize': med,
+              'figure.titlesize': large
+              }
+    plt.rcParams.update(params)
+    plt.style.use('seaborn-v0_8-whitegrid')
+    #---------------------------------------
+
+    colors = []
+    driversForColor = []
+    data_list_Speed = None
+    data_list_Throttle = None
+    data_list_Brake = None
+    data_list_Gear = None
+    data_list_RPM = None
+    data_list_DRS = None
+    quali = ff1.get_session(yearRace, nameRace,typeOfSession)
+    quali.load() # This is new with Fastf1 v.2.2
+
+    # This is how it used to be:
+    # laps = quali.load_laps(with_telemetry=True)
+
+    for team in teams:
+        #ottiene il miglior pilota dei due team
+        driver = Functions.returnBestDriverOnTeam(team,quali)
+
+        # Laps can now be accessed through the .laps object coming from the session
+        laps_driver_1 = quali.laps.pick_driver(driver)
+
+        # Select the fastest lap
+        fastest_driver= laps_driver_1.pick_fastest()
+
+        # Retrieve the telemetry and add the distance column
+        telemetry_driver = fastest_driver.get_telemetry().add_distance()
+
+        # Make sure whe know the team name for coloring
+        team_driver = fastest_driver['Team']
+
+        #plot_size = [21, 9]
+        #plot_title = f"{quali.event.year} {quali.event.EventName} - {quali.name} - {driver_1} VS {driver_2}"
+        plot_ratios = [1, 3, 2, 1, 1, 2, 1]
+        #plot_filename = plot_title.replace(" ", "") + ".png"
+
+
+        # Make plot a bit bigger
+        #plt.rcParams['figure.figsize'] = plot_size
+
+        # Create subplots with different sizes
+        #fig, ax = plt.subplots(7)
+        #fig.suptitle(plot_title)
+        #ax[0].subtitle = f"{quali.event.year} {quali.event.EventName} - {quali.name} - {driver_1} VS {driver_2}"
+        #ax[0].get_xaxis().set_visible(False)
+
+        team = quali.get_driver(driver)["TeamName"]
+        color = ff1.plotting.get_team_color(team, quali, colormap='official', exact_match=False)
+        colors.append(color)
+        driversForColor.append(driver)
+
+        # Set the plot title
+        #ax[0].title.set_text(plot_title)
+
+        # Delta line
+        #ax[0].plot(ref_tel['Distance'], delta_time,linewidth=0.9,color='grey')
+        #ax[0].axhline(0,linewidth=0.2,color="yellow")
+        #ax[0].set(ylabel=f"Gap to {driver_2} (s)")
+        #ax[0].grid(linewidth=0.09, color="grey")
+        #ax[0].xaxis.grid(False, 'minor')
+        #ax[0].yaxis.grid(False, 'minor')
+        #ax[0].spines[['right', 'top']].set_visible(False)
+
+        # Speed trace
+        #ax[1].plot(telemetry_driver_1['Distance'], telemetry_driver_1['Speed'], label=driver_1,color=ff1.plotting.team_color(team_driver_1),linewidth=0.9)
+        #ax[1].plot(telemetry_driver_2['Distance'], telemetry_driver_2['Speed'], label=driver_2,color=ff1.plotting.team_color(team_driver_2),linewidth=0.9)
+        #ax[1].set(ylabel='Speed')
+        #ax[1].legend(loc="lower right")
+        #ax[1].get_xaxis().set_visible(False)
+        #ax[1].get_yaxis().set_visible(False)
+        #ax[1].grid(linewidth=0.09, color="grey")
+        #ax[1].xaxis.grid(False, 'minor')
+        #ax[1].yaxis.grid(False, 'minor')
+        #ax[1].spines[['right', 'top']].set_visible(False)
+
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        chart_data = pd.DataFrame({
+            "Distance": telemetry_driver['Distance'],
+            "Speed": telemetry_driver['Speed'],
+            "Driver": driver})
+
+        if (data_list_Speed is None):
+            data_list_Speed = chart_data
+        else:
+            data_list_Speed = pd.concat([chart_data, data_list_Speed], ignore_index=True)
+
+        #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        # Throttle trace
+        #ax[2].plot(telemetry_driver_1['Distance'], telemetry_driver_1['Throttle'], label=driver_1,color=ff1.plotting.team_color(team_driver_1),linewidth=0.9)
+        #[2].plot(telemetry_driver_2['Distance'], telemetry_driver_2['Throttle'], label=driver_2,color=ff1.plotting.team_color(team_driver_2),linewidth=0.9)
+        #ax[2].set(ylabel='Throttle')
+        #ax[2].get_xaxis().set_visible(False)
+        #ax[2].get_yaxis().set_visible(False)
+        #ax[2].grid(linewidth=0.09, color="grey")
+        #ax[2].xaxis.grid(False, 'minor')
+        #ax[2].yaxis.grid(False, 'minor')
+        #ax[2].spines[['right', 'top']].set_visible(False)
+
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        chart_data = pd.DataFrame({
+            "Distance": telemetry_driver['Distance'],
+            "Throttle": telemetry_driver['Throttle'],
+            "Driver": driver})
+
+        if (data_list_Throttle is None):
+            data_list_Throttle = chart_data
+        else:
+            data_list_Throttle = pd.concat([chart_data, data_list_Throttle], ignore_index=True)
+
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        # Brake trace
+        #ax[3].plot(telemetry_driver_1['Distance'], telemetry_driver_1['Brake'], label=driver_1,
+        #           color=ff1.plotting.team_color(team_driver_1),linewidth=0.9)
+        #ax[3].plot(telemetry_driver_2['Distance'], telemetry_driver_2['Brake'], label=driver_2,
+        #           color=ff1.plotting.team_color(team_driver_2),linewidth=0.9)
+        #ax[3].set(ylabel='Brake')
+        #ax[3].get_xaxis().set_visible(False)
+        #ax[3].get_yaxis().set_visible(False)
+        #ax[3].grid(linewidth=0.09, color="grey")
+        #ax[3].xaxis.grid(False, 'minor')
+        #ax[3].yaxis.grid(False, 'minor')
+        #ax[3].spines[['right', 'top']].set_visible(False)
+
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        chart_data = pd.DataFrame({
+            "Distance": telemetry_driver['Distance'],
+            "Brake": telemetry_driver['Brake'].astype(int),
+            "Driver": driver})
+
+        if (data_list_Brake is None):
+            data_list_Brake = chart_data
+        else:
+            data_list_Brake = pd.concat([chart_data, data_list_Brake], ignore_index=True)
+
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+        # Gear trace
+        #ax[4].plot(telemetry_driver_1['Distance'], telemetry_driver_1['nGear'], label=driver_1,
+        #           color=ff1.plotting.team_color(team_driver_1),linewidth=0.9)
+        #ax[4].plot(telemetry_driver_2['Distance'], telemetry_driver_2['nGear'], label=driver_2,
+        #           color=ff1.plotting.team_color(team_driver_2),linewidth=0.9)
+        #ax[4].set(ylabel='Gear')
+        #ax[4].get_xaxis().set_visible(False)
+        ##ax[4].get_yaxis().set_visible(False)
+        #ax[4].grid(linewidth=0.09, color="grey")
+        #ax[4].xaxis.grid(False, 'minor')
+        #ax[4].yaxis.grid(False, 'minor')
+        #ax[4].spines[['right', 'top']].set_visible(False)
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        chart_data = pd.DataFrame({
+            "Distance": telemetry_driver['Distance'],
+            "nGear": telemetry_driver['nGear'],
+            "Driver": driver})
+
+        if (data_list_Gear is None):
+            data_list_Gear = chart_data
+        else:
+            data_list_Gear = pd.concat([chart_data, data_list_Gear], ignore_index=True)
+
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        # RPM trace
+        #ax[5].plot(telemetry_driver_1['Distance'], telemetry_driver_1['RPM'], label=driver_1,
+        #           color=ff1.plotting.team_color(team_driver_1),linewidth=0.9)
+        #ax[5].plot(telemetry_driver_2['Distance'], telemetry_driver_2['RPM'], label=driver_2,
+        #           color=ff1.plotting.team_color(team_driver_2),linewidth=0.9)
+        #ax[5].set(ylabel='RPM')
+        #ax[5].get_xaxis().set_visible(False)
+        ##ax[5].get_yaxis().set_visible(False)
+        #ax[5].grid(linewidth=0.09, color="grey")
+        #ax[5].xaxis.grid(False, 'minor')
+        #ax[5].yaxis.grid(False, 'minor')
+        #ax[5].spines[['right', 'top']].set_visible(False)
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        chart_data = pd.DataFrame({
+            "Distance": telemetry_driver['Distance'],
+            "RPM": telemetry_driver['RPM'],
+            "Driver": driver})
+
+        if (data_list_RPM is None):
+            data_list_RPM = chart_data
+        else:
+            data_list_RPM = pd.concat([chart_data, data_list_RPM], ignore_index=True)
+
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        # DRS trace
+        #ax[6].plot(telemetry_driver_1['Distance'], telemetry_driver_1['DRS'], label=driver_1,
+        #           color=ff1.plotting.team_color(team_driver_1),linewidth=0.9)
+        #ax[6].plot(telemetry_driver_2['Distance'], telemetry_driver_2['DRS'], label=driver_2,
+        #           color=ff1.plotting.team_color(team_driver_2),linewidth=0.9)
+        #ax[6].set(ylabel='DRS')
+        #ax[6].set(xlabel='Lap distance (meters)')
+        #ax[6].get_xaxis().set_visible(False)
+        #ax[6].get_yaxis().set_visible(False)
+        #ax[6].grid(linewidth=0.09, color="grey")
+        #ax[6].xaxis.grid(False, 'minor')
+        #ax[6].yaxis.grid(False, 'minor')
+        #ax[6].spines[['right', 'top']].set_visible(False)
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        chart_data = pd.DataFrame({
+            "Distance": telemetry_driver['Distance'],
+            "DRS": telemetry_driver['DRS'],
+            "Driver": driver})
+
+        if (data_list_DRS is None):
+            data_list_DRS = chart_data
+        else:
+            data_list_DRS = pd.concat([chart_data, data_list_DRS], ignore_index=True)
+
+        # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    # stampa grafici
+    chartM = alt.Chart(data_list_Speed).mark_line().encode(
+        x=alt.X(
+            'Distance'
+        ),
+        y=alt.Y(
+            'Speed',
+            scale=alt.Scale(domain=[0, 350]), axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+        ),
+        color=alt.Color(
+            'Driver',
+            scale=alt.Scale(
+                domain=driversForColor,  # Valori univoci
+                range=colors)  # Colori associati
+        ),
+        # Aggiungi tooltip interattivi
+    ).properties(
+        title='Speed',
+        width=600,
+        height=400
+    )
+    chartM = chartM.interactive()
+    st.altair_chart(chartM, use_container_width=True)
+
+    chartM = alt.Chart(data_list_Throttle).mark_line().encode(
+        x=alt.X(
+            'Distance'
+        ),
+        y=alt.Y(
+            'Throttle',
+            scale=alt.Scale(domain=[0, 104])  # Imposta la scala per l'asse X
+        ),
+        color=alt.Color(
+            'Driver',
+            scale=alt.Scale(
+                domain=driversForColor,  # Valori univoci
+                range=colors)  # Colori associati
+        ),
+        # Aggiungi tooltip interattivi
+    ).properties(
+        title='Throttle',
+        width=600,
+        height=400
+    )
+    chartM = chartM.interactive()
+    st.altair_chart(chartM, use_container_width=True)
+
+    chartM = alt.Chart(data_list_Brake).mark_line().encode(
+        x=alt.X(
+            'Distance'
+        ),
+        y=alt.Y(
+            'Brake',
+            scale=alt.Scale(domain=[0, 1.1]), axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+        ),
+        color=alt.Color(
+            'Driver',
+            scale=alt.Scale(
+                domain=driversForColor,  # Valori univoci
+                range=colors)  # Colori associati
+        ),
+        # Aggiungi tooltip interattivi
+    ).properties(
+        title='Brake',
+        width=600,
+        height=400
+    )
+    chartM = chartM.interactive()
+    st.altair_chart(chartM, use_container_width=True)
+
+    chartM = alt.Chart(data_list_Gear).mark_line().encode(
+        x=alt.X(
+            'Distance'
+        ),
+        y=alt.Y(
+            'nGear',
+            scale=alt.Scale(domain=[0, 9]), axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+        ),
+        color=alt.Color(
+            'Driver',
+            scale=alt.Scale(
+                domain=driversForColor,  # Valori univoci
+                range=colors)  # Colori associati
+        ),
+        # Aggiungi tooltip interattivi
+    ).properties(
+        title='Gear',
+        width=600,
+        height=400
+    )
+    chartM = chartM.interactive()
+    st.altair_chart(chartM, use_container_width=True)
+
+    chartM = alt.Chart(data_list_RPM).mark_line().encode(
+        x=alt.X(
+            'Distance'
+        ),
+        y=alt.Y(
+            'RPM'
+        ),
+        color=alt.Color(
+            'Driver',
+            scale=alt.Scale(
+                domain=driversForColor,  # Valori univoci
+                range=colors)  # Colori associati
+        ),
+        # Aggiungi tooltip interattivi
+    ).properties(
+        title='RPM',
+        width=600,
+        height=400
+    )
+    chartM = chartM.interactive()
+    st.altair_chart(chartM, use_container_width=True)
+
+    chartM = alt.Chart(data_list_DRS).mark_line().encode(
+        x=alt.X(
+            'Distance'
+        ),
+        y=alt.Y(
+            'DRS',
+            scale=alt.Scale(domain=[0, 15]), axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+        ),
+        color=alt.Color(
+            'Driver',
+            scale=alt.Scale(
+                domain=driversForColor,  # Valori univoci
+                range=colors)  # Colori associati
+        ),
+        # Aggiungi tooltip interattivi
+    ).properties(
+        title='DRS',
+        width=600,
+        height=400
+    )
+    chartM = chartM.interactive()
+    st.altair_chart(chartM, use_container_width=True)
+
+    # Hide x labels and tick labels for top plots and y ticks for right plots.
+    #for a in ax.flat:
+    #    a.label_outer()
+
+    #if(typeOfSession == 'Q'):
+    #    NameSession = "Qualifying"
+    #else:
+    #    NameSession = "FreePractice"
+
+
+    #Functions.savePlotInFile(plt,nameRace,yearRace,"\\"+NameSession+"\\" +typeOfSession+"_Telemetry" + driver_1 + "vs" + driver_2,NameSession)
+    print("Fine")
