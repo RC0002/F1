@@ -320,7 +320,7 @@ def pagina_passi_gara():
     with st.spinner('Wait for it...'):
         SimulationFreePracticePaceTeamOrDriversStreamlit.execute(nameRace, anno_attuale,
                                                                                 pilotiSelezionati, sessionRace,
-                                                                                '00:00:2.000000',isTest)
+                                                                                '00:00:10.000000',isTest)
 
 def pagina_giro_veloce():
     st.title("Giro Veloce")
