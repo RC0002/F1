@@ -17,6 +17,7 @@ import Functions
 import SimulationFreePracticePaceTeamOrDriversStreamlit
 import asyncio
 import BestLapCompareTelemetryDeltaBestOfTwoTeamStreamlit
+import ChangePositionInRace
 
 sys.setrecursionlimit(2000)  # Set recursion limit to 2000
 
@@ -236,6 +237,46 @@ def pagina_calendario():
         else:
             st.markdown(calendario[['round', 'raceName', 'raceDate', 'raceTime', 'circuitName', 'country',]].reset_index(drop=True).to_html(index=False), unsafe_allow_html=True)
 
+def pagina_risultati():
+    st.title("Risultati")
+    #listaCalendario = Functions.getEventNamePerYear(anno_attuale)
+    listaCalendario = Functions.getEventNamePerYearBeforeSysdate(anno_attuale)
+    col1, col2, col3, col4, col5 = st.columns(5)
+    #st.write(fastf1.get_event_schedule(anno_attuale))
+
+    # Posizionare il primo selectbox nella prima colonna
+    with col1:
+        nameRace = st.selectbox("Scegli la gara", listaCalendario)
+    # Posizionare il secondo selectbox nella seconda colonna
+    with col2:
+        eventi = pd.DataFrame(Functions.getEventPerYear(anno_attuale))
+        tipoEvento = eventi.loc[eventi['EventName'] == nameRace, 'EventFormat'].iloc[0]
+        roundNumber = eventi.loc[eventi['EventName'] == nameRace, 'RoundNumber'].iloc[0]
+        if tipoEvento == "conventional":
+            sessionRace = st.selectbox("Scegli la Sessione",
+                                       ['Practice 1', 'Practice 2', 'Practice 3', 'Qualifying', 'Race'])
+            isTest = False
+        elif tipoEvento == "sprint_qualifying":
+            sessionRace = st.selectbox("Scegli la Sessione",
+                                       ['Practice 1', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Race'])
+            isTest = False
+        else:
+            nameRace = 1
+            sessionRace = st.selectbox("Scegli la Sessione", [1, 2, 3])
+            isTest = True
+
+
+    with st.spinner('Wait for it...'):
+        st.title(nameRace +' - '+ sessionRace)
+        if not isTest:
+            session = fastf1.get_session(anno_attuale, nameRace, sessionRace)
+        else:
+            session = fastf1.get_testing_session(anno_attuale, nameRace, sessionRace)
+        session.load()
+        ris = session.results[['Position','FullName', 'DriverNumber', 'TeamName']]
+        ris['Position'] = (ris['Position'].astype(str).str.replace('\.0', '', regex=True) )
+        st.write(ris.reset_index(drop=True).to_html(index=False), unsafe_allow_html=True)
+
 def pagina_impostazioni():
     st.title("Impostazioni")
     eventi_passati = Functions.getEventNamePerYearBeforeSysdate(anno_attuale)
@@ -246,6 +287,7 @@ def pagina_impostazioni():
     team_riaperto = Functions.getTeamDefault()
 
     with st.spinner('Wait for it...'):
+
         drivers = Functions.getDriverOfTheSession(anno_attuale, ultimo_evento, 'Practice 1')
         teams = Functions.getTeamOfTheSession(anno_attuale, ultimo_evento, 'Practice 1')
 
@@ -320,7 +362,7 @@ def pagina_passi_gara():
     with st.spinner('Wait for it...'):
         SimulationFreePracticePaceTeamOrDriversStreamlit.execute(nameRace, anno_attuale,
                                                                                 pilotiSelezionati, sessionRace,
-                                                                                '00:00:10.000000',isTest)
+                                                                                '00:00:5.000000',isTest)
 
 def pagina_giro_veloce():
     st.title("Giro Veloce")
@@ -359,6 +401,57 @@ def pagina_giro_veloce():
     with st.spinner('Wait for it...'):
         BestLapCompareTelemetryDeltaBestOfTwoTeamStreamlit.execute(nameRace, anno_attuale, teamSelezionati, sessionRace)
 
+def pagina_posizioni_gara():
+    st.title("Posizioni in Gara")
+    #listaCalendario = Functions.getEventNamePerYear(anno_attuale)
+    listaCalendario = Functions.getEventNamePerYearBeforeSysdate(anno_attuale)
+    col1, col2, col3, col4, col5 = st.columns(5)
+    #st.write(fastf1.get_event_schedule(anno_attuale))
+
+    # Posizionare il primo selectbox nella prima colonna
+    with col1:
+        nameRace = st.selectbox("Scegli la gara", listaCalendario)
+    # Posizionare il secondo selectbox nella seconda colonna
+    with col2:
+        eventi = pd.DataFrame(Functions.getEventPerYear(anno_attuale))
+        tipoEvento = eventi.loc[eventi['EventName'] == nameRace, 'EventFormat'].iloc[0]
+        roundNumber = eventi.loc[eventi['EventName'] == nameRace, 'RoundNumber'].iloc[0]
+        if tipoEvento == "conventional":
+            sessionRace = st.selectbox("Scegli la Sessione", [ 'Race'])
+            isTest = False
+        elif tipoEvento == "sprint_qualifying":
+            sessionRace = st.selectbox("Scegli la Sessione", ['Sprint', 'Race'])
+            isTest = False
+        else:
+            nameRace = 1
+            sessionRace = st.selectbox("Scegli la Sessione",[1,2,3])
+            isTest = True
+
+    drivers = Functions.getDriverOfTheSession(anno_attuale, nameRace, sessionRace)
+    #ergast = Ergast()
+    #standing = ergast.get_driver_standings(anno_attuale).content[0]
+    #st.write(standing)
+    #st.write(standing['constructorNames'] == ['Ferrari'])
+    #st.write(standing.loc[standing['constructorNames'] == 'Ferrari', 'driverCode'])
+
+    #---if(anno_attuale == datetime.now().year):
+    #---    d=Functions.getDriverDefault()
+    #---else:
+    #---    d = drivers
+
+    #---pilotiSelezionati = st.multiselect(
+        #---    'Piloti',  # Titolo del widget
+        #---    options=drivers,  # Lista di opzioni
+    #---    default= drivers  # Valori di default selezionati
+    #---)
+
+    #st.write(pilotiSelezionati, sessionRace, nameRace, tipoEvento)
+    #with st.spinner('Wait for it...'):
+        #st.pyplot(BestLapCompareSpeedAndDeltaBestOfTwoTeam.execute(nameRace, anno_attuale, "Red Bull Racing", "Ferrari", "Mercedes", sessionRace))
+
+    with st.spinner('Wait for it...'):
+        ChangePositionInRace.execute(nameRace, anno_attuale,drivers, sessionRace,
+                                                                                '00:00:5.000000',isTest)
 
 
 
@@ -391,11 +484,12 @@ pages = {
         st.Page(pagina_home, title="Home", icon=""),
         st.Page(pagina_calssifica, title="Classifiche", icon="🏆"),
         st.Page(pagina_calendario, title="Calendario", icon="🖥️"),
+        st.Page(pagina_risultati, title="Risultati", icon="📊"),
         st.Page(pagina_impostazioni, title="Impostazioni", icon="⚙️"),
     ],"Grafici":[
             st.Page(pagina_passi_gara, title="Passo Gara"),
-            st.Page(pagina_giro_veloce, title="Giro Veloce")]
-
+            st.Page(pagina_giro_veloce, title="Giro Veloce"),
+            st.Page(pagina_posizioni_gara, title="Posizioni in Gara")]
 }
 
 pg = st.navigation(pages)
