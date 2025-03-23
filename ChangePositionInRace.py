@@ -19,7 +19,7 @@ import altair as alt
 
 #Stampa i stint separati dei piloti
 def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest):
-    #fastf1.Cache.enable_cache('/Users/Federico/Library/Caches/fastf1')  # optional but recommended
+    fastf1.Cache.enable_cache('./Cache')  # optional but recommended
     plotting.setup_mpl()
 
     #Style del testo------------------------

@@ -1,3 +1,5 @@
+import fastf1
+
 import fastf1 as ff1
 from fastf1 import plotting
 from fastf1 import utils
@@ -18,7 +20,7 @@ import Functions
 #ff1.Cache.enable_cache('cache')
 
 def execute(nameRace,yearRace,teams,typeOfSession):
-
+    fastf1.Cache.enable_cache('./Cache')  # optional but recommended
     #Style del testo------------------------
     large = 20;
     med = 9;

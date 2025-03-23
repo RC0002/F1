@@ -19,7 +19,7 @@ import altair as alt
 
 #Stampa i stint separati dei piloti
 def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest):
-    #fastf1.Cache.enable_cache('/Users/Federico/Library/Caches/fastf1')  # optional but recommended
+    fastf1.Cache.enable_cache('./Cache')  # optional but recommended
     plotting.setup_mpl()
 
     #Style del testo------------------------
@@ -81,7 +81,6 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
     posStampa=0
     # ------------------------------------
     for d in drivers:
-        driver = race.laps.pick_driver(d).pick_accurate()
         #---------------------------------------------------------
         #analisi stint di gara
         # Get laps of the driver
@@ -103,8 +102,6 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
 
                 l['RaceLapNumber'] = l['LapNumber'] - 1
 
-                full_distance_ver_ric = pd.DataFrame()
-                summarized_distance_ver_ric = pd.DataFrame()
                 tmp=laps.loc[laps['Stint'] == i+1]
                 linestyle = '-' if team not in visualized_teams else ':'
                 try:
@@ -114,8 +111,8 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
                 if(tmp>2):
                     fig.suptitle(" Stint comparison")
                     #print(l.pick_fastest(d).get("LapTime") + '00:00:8.000000')
-                    #if l.Compound.max() != 'WET' and l.Compound.max() != 'INTERMEDIATE':
-                        #l.drop(l.loc[l['LapTime'] >= (l.pick_fastest(d).get("LapTime") + secondiDaConsiderare)].index,inplace=True)
+                    if l.Compound.max() != 'WET' and l.Compound.max() != 'INTERMEDIATE':
+                        l.drop(l.loc[l['LapTime'] >= (l.pick_fastest(d).get("LapTime") + secondiDaConsiderare)].index,inplace=True)
 
                     if l.Compound.max() == 'SOFT':
                         #if l.FreshTyre.max():
@@ -264,7 +261,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartS = alt.Chart(data_list_Soft).mark_line().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1, format='d')  # Imposta la scala per l'asse X
             ),
             y=alt.Y(
                 'LapTime:Q',
@@ -285,7 +282,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartSPoints = alt.Chart(data_list_Soft).mark_circle().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False, format='d')  # Imposta la scala per l'asse X
             ),
             y=alt.Y(
                 'LapTime:Q',
@@ -307,7 +304,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartM = alt.Chart(data_list_Medium).mark_line().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1, format='d')  # Imposta la scala per l'asse X
             ),
             y=alt.Y(
                 'LapTime:Q',
@@ -328,7 +325,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartMPoints = alt.Chart(data_list_Medium).mark_circle().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False)#axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False, format='d')#axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
 
             ),
             y=alt.Y(
@@ -351,7 +348,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartH = alt.Chart(data_list_Hard).mark_line().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1, format='d')  # Imposta la scala per l'asse X
             ),
             y=alt.Y(
                 'LapTime:Q',
@@ -372,7 +369,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartHPoints = alt.Chart(data_list_Hard).mark_circle().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False, format='d')  # Imposta la scala per l'asse X
             ),
             y=alt.Y(
                 'LapTime:Q',
@@ -394,7 +391,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartW = alt.Chart(data_list_Wet).mark_line().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1, format='d')  # Imposta la scala per l'asse X
             ),
             y=alt.Y(
                 'LapTime:Q',
@@ -415,7 +412,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartWPoints = alt.Chart(data_list_Wet).mark_circle().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False, format='d')  # Imposta la scala per l'asse X
             ),
             y=alt.Y(
                 'LapTime:Q',
@@ -437,7 +434,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartI = alt.Chart(data_list_Inter).mark_line().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(tickMinStep=1, format='d')  # Imposta la scala per l'asse X
             ),
             y=alt.Y(
                 'LapTime:Q',
@@ -458,7 +455,7 @@ def execute(nameRace,yearRace,drivers,typeOfSession,secondiDaConsiderare, isTest
         chartIPoints = alt.Chart(data_list_Inter).mark_circle().encode(
             x=alt.X(
                 'RaceLapNumber:Q',
-                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False)  # Imposta la scala per l'asse X
+                scale=alt.Scale(domain=[0, maxNLap]), axis=alt.Axis(grid=False, format='d')  # Imposta la scala per l'asse X
             ),
             y=alt.Y(
                 'LapTime:Q',
