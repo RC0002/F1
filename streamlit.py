@@ -18,6 +18,7 @@ import SimulationFreePracticePaceTeamOrDriversStreamlit
 import asyncio
 import BestLapCompareTelemetryDeltaBestOfTwoTeamStreamlit
 import ChangePositionInRace
+import TyrePerStint
 import Distacchi_Gara
 
 sys.setrecursionlimit(2000)  # Set recursion limit to 2000
@@ -452,6 +453,58 @@ def pagina_posizioni_gara():
 
     with st.spinner('Wait for it...'):
         ChangePositionInRace.execute(nameRace, anno_attuale,drivers, sessionRace,'00:00:5.000000',isTest)
+
+def tyre_per_stint():
+    st.title("Gomme Stint")
+    #listaCalendario = Functions.getEventNamePerYear(anno_attuale)
+    listaCalendario = Functions.getEventNamePerYearBeforeSysdate(anno_attuale)
+    col1, col2, col3, col4, col5 = st.columns(5)
+    #st.write(fastf1.get_event_schedule(anno_attuale))
+
+    # Posizionare il primo selectbox nella prima colonna
+    with col1:
+        nameRace = st.selectbox("Scegli la gara", listaCalendario)
+    # Posizionare il secondo selectbox nella seconda colonna
+    with col2:
+        eventi = pd.DataFrame(Functions.getEventPerYear(anno_attuale))
+        tipoEvento = eventi.loc[eventi['EventName'] == nameRace, 'EventFormat'].iloc[0]
+        roundNumber = eventi.loc[eventi['EventName'] == nameRace, 'RoundNumber'].iloc[0]
+        if tipoEvento == "conventional":
+            sessionRace = st.selectbox("Scegli la Sessione", [ 'Race'])
+            isTest = False
+        elif tipoEvento == "sprint_qualifying":
+            sessionRace = st.selectbox("Scegli la Sessione", ['Sprint', 'Race'])
+            isTest = False
+        else:
+            nameRace = 1
+            sessionRace = st.selectbox("Scegli la Sessione",[1,2,3])
+            isTest = True
+
+    drivers = Functions.getDriverOfTheSession(anno_attuale, nameRace, sessionRace)
+    #ergast = Ergast()
+    #standing = ergast.get_driver_standings(anno_attuale).content[0]
+    #st.write(standing)
+    #st.write(standing['constructorNames'] == ['Ferrari'])
+    #st.write(standing.loc[standing['constructorNames'] == 'Ferrari', 'driverCode'])
+
+    #---if(anno_attuale == datetime.now().year):
+    #---    d=Functions.getDriverDefault()
+    #---else:
+    #---    d = drivers
+
+    #---pilotiSelezionati = st.multiselect(
+        #---    'Piloti',  # Titolo del widget
+        #---    options=drivers,  # Lista di opzioni
+    #---    default= drivers  # Valori di default selezionati
+    #---)
+
+    #st.write(pilotiSelezionati, sessionRace, nameRace, tipoEvento)
+    #with st.spinner('Wait for it...'):
+        #st.pyplot(BestLapCompareSpeedAndDeltaBestOfTwoTeam.execute(nameRace, anno_attuale, "Red Bull Racing", "Ferrari", "Mercedes", sessionRace))
+
+    with st.spinner('Wait for it...'):
+        TyrePerStint.execute(nameRace, anno_attuale,drivers, sessionRace,'00:00:5.000000',isTest)
+
 def distacchi_gara():
     st.title("Distacchi in Gara")
     # listaCalendario = Functions.getEventNamePerYear(anno_attuale)
@@ -519,7 +572,8 @@ pages = {
             st.Page(pagina_passi_gara, title="Passo Gara"),
             st.Page(pagina_giro_veloce, title="Giro Veloce"),
             st.Page(pagina_posizioni_gara, title="Posizioni in Gara"),
-            st.Page(distacchi_gara, title="Distacchi in Gara")]
+            st.Page(distacchi_gara, title="Distacchi in Gara"),
+            st.Page(tyre_per_stint, title="Stint Gomme")]
 }
 
 pg = st.navigation(pages)
