@@ -256,11 +256,11 @@ def pagina_risultati():
         roundNumber = eventi.loc[eventi['EventName'] == nameRace, 'RoundNumber'].iloc[0]
         if tipoEvento == "conventional":
             sessionRace = st.selectbox("Scegli la Sessione",
-                                       ['Practice 1', 'Practice 2', 'Practice 3', 'Qualifying', 'Race'])
+                                       ['Qualifying', 'Race'])
             isTest = False
         elif tipoEvento == "sprint_qualifying":
             sessionRace = st.selectbox("Scegli la Sessione",
-                                       ['Practice 1', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Race'])
+                                       ['Sprint Qualifying', 'Sprint', 'Qualifying', 'Race'])
             isTest = False
         else:
             nameRace = 1
@@ -275,7 +275,23 @@ def pagina_risultati():
         else:
             session = fastf1.get_testing_session(anno_attuale, nameRace, sessionRace)
         session.load()
-        ris = session.results[['Position','FullName', 'DriverNumber', 'TeamName']]
+        if(sessionRace == 'Qualifying' or sessionRace == 'Sprint Qualifying'):
+            ris = session.results[['Position','FullName', 'DriverNumber', 'TeamName', 'Q1', 'Q2', 'Q3']]
+            # Calcolo del tempo minimo
+            tempo_min = ris['Q3'].min()
+
+            # Differenza dal miglior tempo
+            ris['Gap Q3'] = ris['Q3'] - tempo_min
+
+            ris['Q1'] = ris['Q1'].astype(str).str.replace('0 days ', '', regex=False).str.replace('00:', '', regex=False)
+            ris['Q2'] = ris['Q2'].astype(str).str.replace('0 days ', '', regex=False).str.replace('00:', '', regex=False)
+            ris['Q3'] = ris['Q3'].astype(str).str.replace('0 days ', '', regex=False).str.replace('00:', '', regex=False)
+            ris['Gap Q3'] = ris['Gap Q3'].astype(str).str.replace('0 days ', '', regex=False).str.replace('00:', '', regex=False)
+        else:
+            ris = session.results[['Position', 'FullName', 'DriverNumber', 'TeamName', 'Time']]
+            ris['Time'] = ris['Time'].astype(str).str.replace('0 days ', '', regex=False).str.replace('00:', '',
+                                                                                                  regex=False)
+
         ris['Position'] = (ris['Position'].astype(str).str.replace('\.0', '', regex=True) )
         st.markdown(ris.reset_index(drop=True).to_html(index=False), unsafe_allow_html=True)
 
@@ -573,7 +589,7 @@ pages = {
             st.Page(pagina_giro_veloce, title="Giro Veloce"),
             st.Page(pagina_posizioni_gara, title="Posizioni in Gara"),
             st.Page(distacchi_gara, title="Distacchi in Gara"),
-            st.Page(tyre_per_stint, title="Stint Gomme")]
+            st.Page(tyre_per_stint, title="Gomme per Stint in Gara")]
 }
 
 pg = st.navigation(pages)
